@@ -1,6 +1,6 @@
 <?php
 session_start();
-include('inc/function');
+include('inc/function.php');
 unset($_SESSION['sid']);
 session_destroy();
 
