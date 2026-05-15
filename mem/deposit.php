@@ -154,7 +154,13 @@ $left=2;
 <div class="card-body">
 <br>
                    <?php if(($_REQUEST['s'] ?? null) == 1): ?>
- <div class="alert alert-success text-center" role="alert" style="border-radius: 12px;">Your Deposit was successfully!</div>
+    <?php if(($_REQUEST['auto'] ?? null) == 1): ?>
+        <div class="alert alert-success text-center" role="alert" style="border-radius: 12px;">✅ Deposit Verified & Approved! Amount credited to your wallet.</div>
+    <?php elseif(($_REQUEST['pending'] ?? null) == 1): ?>
+        <div class="alert alert-warning text-center" role="alert" style="border-radius: 12px;">⏳ Deposit submitted. Transaction could not be auto-verified. Admin will review shortly.</div>
+    <?php else: ?>
+        <div class="alert alert-success text-center" role="alert" style="border-radius: 12px;">Your Deposit was submitted successfully!</div>
+    <?php endif; ?>
 <?php endif; ?>
 
  <?php if(($_REQUEST['p'] ?? null) == 2) { ?>
@@ -190,8 +196,8 @@ $qr_res = $conn->query("SELECT * FROM imaksoft_settings_qr LIMIT 1");
 $qr = $qr_res ? $qr_res->fetch_assoc() : null;
 ?>
 
-<?php if(($_REQUEST['s'] ?? null) == 1): ?>
-<div class="alert alert-success text-center">Payment screenshot submitted! Waiting for admin approval.</div>
+<?php if(($_REQUEST['e'] ?? null) == 1): ?>
+<div class="alert alert-danger text-center" role="alert" style="border-radius: 12px;">❌ Something went wrong. Please try again.</div>
 <?php endif; ?>
 
 <div id="step1">

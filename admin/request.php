@@ -37,6 +37,7 @@
 <td align="center"><strong>UTR No.</strong></td>
 <td align="center"><strong>Screenshot</strong></td>
 <td align="center"><strong>Amount</strong></td>
+<td align="center"><strong>Verify Status</strong></td>
 <td align="center"><strong>Status</strong></td>
 <td align="center"><strong>Date</strong></td>
 <td align="center"><strong>Action</strong></td>
@@ -68,6 +69,18 @@ $i = 1;
         <?php else: ?>-<?php endif; ?></td>
         <td align="center">$ <?= htmlspecialchars($fetch['amount']) ?></td>
         <td align="center" style="padding:5px;">
+            <?php
+            $note = $fetch['verify_note'] ?? '';
+            if($fetch['status'] == 'C') {
+                echo '<span style="color:#fff;background:#009900;padding:2px 8px;border-radius:5px;">✅ Blockchain Verified</span>';
+            } elseif(!empty($note)) {
+                echo '<span style="color:#fff;background:#cc6600;padding:2px 8px;border-radius:5px;" title="'.htmlspecialchars($note).'">⚠ '.$note.'</span>';
+            } else {
+                echo '<span style="color:#fff;background:#999;padding:2px 8px;border-radius:5px;">Pending Review</span>';
+            }
+            ?>
+        </td>
+        <td align="center" style="padding:5px;">
             <?php if ($fetch['status'] == 'P'): ?>
                 <a href="payment-request-process?case=status&amp;id=<?= $fetch['id'] ?>&amp;st=P" style="text-decoration:none;" onclick="return confirm('Approve this deposit?');">
                     <span style="color:#fff;background:#FF0000;padding:2px 10px;border-radius:5px;">Pending</span>
@@ -86,7 +99,7 @@ $i = 1;
         </td>
     </tr>
 <?php endwhile; else: ?>
-    <tr><td colspan="9" align="center" style="color:#FF0000;">No Record Found!</td></tr>
+    <tr><td colspan="10" align="center" style="color:#FF0000;">No Record Found!</td></tr>
 <?php endif; ?>
 </tbody>
 </table>
