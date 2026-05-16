@@ -591,7 +591,12 @@ $latestPackage = $row['package'] ?? "No Investment";
                 type="text"
                 id="refer-link"
                 class="form-control copy-text border-primary"
-                value="https://project.smartmlm.in/Mintova/ref?spon=<?=getMember($conn,$_SESSION['mid'],'userid')?>"
+                value="<?php
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$host = $_SERVER['HTTP_HOST'];
+$base = rtrim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/');
+echo $protocol . '://' . $host . $base . '/ref?spon=' . getMember($conn,$_SESSION['mid'],'userid');
+?>"
                 placeholder="referallink.com/refer"
                 aria-label="Recipient's username"
                 aria-describedby="basic-addon2"

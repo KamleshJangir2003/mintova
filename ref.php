@@ -146,7 +146,7 @@ select {
     <!-- Sponsor ID -->
     <div class="col-span-2">
       <label for="sponsor">Sponsor ID*</label>
-      <input type="text" name="sponsor" id="sponsor" placeholder="Sponsor ID" value="<?=$_REQUEST['spon']?>" readonly class="border-danger">
+      <input type="text" name="sponsor" id="sponsor" placeholder="Sponsor ID" value="<?=$_REQUEST['spon'] ?? ''?>" readonly class="border-danger">
     </div>
 
     <!-- Name -->

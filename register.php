@@ -163,7 +163,7 @@ select {
     <!-- Sponsor ID -->
     <div class="col-span-2">
       <label for="sponsor">Sponsor ID*</label>
-      <input type="text" name="sponsor" id="sponsor" placeholder="Sponsor ID" value="<?=$_REQUEST['spon'] ?? ''?>" required>
+      <input type="text" name="sponsor" id="sponsor" placeholder="Sponsor ID" value="<?=$_REQUEST['spon'] ?? ''?>" required readonly>
     </div>
 
     <!-- Name -->

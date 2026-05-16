@@ -1,5 +1,6 @@
 Options +FollowSymlinks
 RewriteEngine On
+RewriteBase /Mintova/
 
 # Remove .php extension from URL (clean URLs)
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -8,4 +9,4 @@ RewriteRule ^(.*)$ $1.php [L]
 
 # Block direct access to .php files (redirect to clean URL)
 RewriteCond %{THE_REQUEST} ^[^\ ]*\ /[^\ ]*\.php
-RewriteRule ^(.*)\.php$ /$1 [R=301,L]
+RewriteRule ^(.*)\.php$ /Mintova/$1 [R=301,L]
