@@ -175,15 +175,15 @@ $left=2;
   <div class="alert alert-danger text-center" role="alert" style="border-radius: 12px;">Duplicate Transaction ID! Already submitted.</div>
 <?php } ?>
 
-<!-- USDT TRC20 Warning -->
+<!-- Network Warning -->
 <div class="alert alert-danger border border-danger" role="alert" style="border-radius: 8px; border-left: 4px solid #dc3545;">
     <div class="d-flex align-items-center">
         <i class="fas fa-exclamation-triangle me-3 fa-lg"></i>
         <div>
-            <h6 class="alert-heading mb-1"><strong>IMPORTANT: USDT TRC20 DEPOSIT ONLY</strong></h6>
+            <h6 class="alert-heading mb-1"><strong>IMPORTANT: USDT DEPOSIT ONLY</strong></h6>
             <p class="mb-0">
                 • Deposit <strong>EXACTLY</strong> the amount you enter below<br>
-                • Use <strong>ONLY USDT TRC20</strong> network for deposits<br>
+                • Use <strong>ONLY USDT TRC20 or BEP20</strong> network<br>
                 • Any other cryptocurrency or network will result in <strong>PERMANENT LOSS</strong><br>
                 • Company is <strong>NOT RESPONSIBLE</strong> for wrong deposits
             </p>
@@ -192,6 +192,9 @@ $left=2;
 </div>
 
 <?php
+// Auto-add BEP20 columns if not exist
+$conn->query("ALTER TABLE imaksoft_settings_qr ADD COLUMN IF NOT EXISTS bep20_wallet_address varchar(255) NOT NULL DEFAULT '' AFTER qr_image");
+$conn->query("ALTER TABLE imaksoft_settings_qr ADD COLUMN IF NOT EXISTS bep20_qr_image varchar(255) NOT NULL DEFAULT '' AFTER bep20_wallet_address");
 $qr_res = $conn->query("SELECT * FROM imaksoft_settings_qr LIMIT 1");
 $qr = $qr_res ? $qr_res->fetch_assoc() : null;
 ?>
@@ -202,26 +205,40 @@ $qr = $qr_res ? $qr_res->fetch_assoc() : null;
 
 <div id="step1">
 <input type="number" step="0.01" id="enterAmount" class="form-control mb-3 border-warning" placeholder="Enter Amount (USDT)" min="1">
+
+<div class="mb-3">
+    <label class="form-label fw-bold">Select Network</label>
+    <div class="d-flex gap-3">
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="networkSelect" id="netTRC20" value="trc20" checked>
+            <label class="form-check-label" for="netTRC20">USDT TRC20 (TRON)</label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="networkSelect" id="netBEP20" value="bep20">
+            <label class="form-check-label" for="netBEP20">USDT BEP20 (BSC)</label>
+        </div>
+    </div>
+</div>
+
 <button class="btn btn-warning w-100" onclick="showQR()">Proceed to Pay</button>
 </div>
 
 <div id="step2" style="display:none;">
 <div class="text-center mb-3">
-    <p class="mb-1"><strong>Send exactly <span id="showAmt" class="text-warning"></span> USDT (TRC20) to:</strong></p>
-    <?php if($qr && $qr['qr_image']): ?>
-    <img src="../admin/uploads/qr/<?=htmlspecialchars($qr['qr_image'])?>" style="width:200px;height:200px;border:2px solid #ffc107;" class="mb-2"><br>
-    <?php endif; ?>
+    <p class="mb-1"><strong>Send exactly <span id="showAmt" class="text-warning"></span> USDT (<span id="showNetwork"></span>) to:</strong></p>
+    <img id="qrImg" src="" style="width:200px;height:200px;border:2px solid #ffc107;display:none;" class="mb-2"><br>
     <div class="input-group mb-2">
-        <input type="text" class="form-control" id="walletAddr" value="<?=htmlspecialchars($qr['wallet_address'] ?? '')?>" readonly>
+        <input type="text" class="form-control" id="walletAddr" value="" readonly>
         <button class="btn btn-outline-warning" onclick="copyAddr()">Copy</button>
     </div>
 </div>
 <form method="post" action="deposit-submit" enctype="multipart/form-data">
     <input type="hidden" name="userid" value="<?=$userid?>">
     <input type="hidden" name="amount" id="hiddenAmt">
+    <input type="hidden" name="network" id="hiddenNetwork">
     <div class="mb-3">
-        <label class="form-label">Transaction ID / UTR No.</label>
-        <input type="text" name="tranid" class="form-control" placeholder="Enter Transaction ID" required>
+        <label class="form-label">Transaction ID / Hash</label>
+        <input type="text" name="tranid" class="form-control" placeholder="Enter Transaction ID / Hash" required>
     </div>
     <div class="mb-3">
         <label class="form-label">Upload Payment Screenshot</label>
@@ -232,11 +249,25 @@ $qr = $qr_res ? $qr_res->fetch_assoc() : null;
 </div>
 
 <script>
+var trc20Wallet = "<?=htmlspecialchars($qr['wallet_address'] ?? '')?>";
+var trc20QR     = "<?=!empty($qr['qr_image']) ? '../admin/uploads/qr/'.htmlspecialchars($qr['qr_image']) : ''?>";
+var bep20Wallet = "<?=htmlspecialchars($qr['bep20_wallet_address'] ?? '')?>";
+var bep20QR     = "<?=!empty($qr['bep20_qr_image']) ? '../admin/uploads/qr/'.htmlspecialchars($qr['bep20_qr_image']) : ''?>";
+
 function showQR() {
     let amt = parseFloat(document.getElementById('enterAmount').value);
     if (isNaN(amt) || amt <= 0) { alert('Enter valid amount'); return; }
+    let net = document.querySelector('input[name="networkSelect"]:checked').value;
+    let wallet = net === 'bep20' ? bep20Wallet : trc20Wallet;
+    let qrSrc  = net === 'bep20' ? bep20QR     : trc20QR;
+    if(!wallet) { alert('This network is not configured yet. Please contact admin.'); return; }
     document.getElementById('showAmt').innerText = amt.toFixed(2);
+    document.getElementById('showNetwork').innerText = net === 'bep20' ? 'BEP20' : 'TRC20';
     document.getElementById('hiddenAmt').value = amt.toFixed(2);
+    document.getElementById('hiddenNetwork').value = net;
+    document.getElementById('walletAddr').value = wallet;
+    let qrEl = document.getElementById('qrImg');
+    if(qrSrc) { qrEl.src = qrSrc; qrEl.style.display = 'inline-block'; } else { qrEl.style.display = 'none'; }
     document.getElementById('step1').style.display = 'none';
     document.getElementById('step2').style.display = 'block';
 }

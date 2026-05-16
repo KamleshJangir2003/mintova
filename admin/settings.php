@@ -1026,18 +1026,36 @@ if(isset($_REQUEST['m']) && $_REQUEST['m']==1){echo '<p style="color:green;">Upd
 $qr_row = fetcharray(query($conn, "SELECT * FROM imaksoft_settings_qr LIMIT 1"));
 ?>
 <form action="settings-qr-process" method="post" enctype="multipart/form-data">
+
+<h6 class="mt-2 mb-3" style="color:#17a2b8;">&#9654; USDT TRC20</h6>
 <div class="form-group">
 <label>Wallet Address (USDT TRC20)</label>
 <input type="text" name="wallet_address" class="form-control border-primary" value="<?=htmlspecialchars($qr_row['wallet_address'] ?? '')?>" required>
 </div>
 <div class="form-group">
-<label>QR Code Image</label><br>
+<label>QR Code Image (TRC20)</label><br>
 <?php if(!empty($qr_row['qr_image'])): ?>
 <img src="uploads/qr/<?=htmlspecialchars($qr_row['qr_image'])?>" style="width:120px;height:120px;margin-bottom:8px;"><br>
 <?php endif; ?>
 <input type="file" name="qr_image" class="form-control" accept="image/*">
 <small class="text-muted">Leave blank to keep existing QR image</small>
 </div>
+
+<hr>
+<h6 class="mt-3 mb-3" style="color:#ffc107;">&#9654; USDT BEP20 (BSC)</h6>
+<div class="form-group">
+<label>Wallet Address (USDT BEP20)</label>
+<input type="text" name="bep20_wallet_address" class="form-control border-warning" value="<?=htmlspecialchars($qr_row['bep20_wallet_address'] ?? '')?>">
+</div>
+<div class="form-group">
+<label>QR Code Image (BEP20)</label><br>
+<?php if(!empty($qr_row['bep20_qr_image'])): ?>
+<img src="uploads/qr/<?=htmlspecialchars($qr_row['bep20_qr_image'])?>" style="width:120px;height:120px;margin-bottom:8px;"><br>
+<?php endif; ?>
+<input type="file" name="bep20_qr_image" class="form-control" accept="image/*">
+<small class="text-muted">Leave blank to keep existing QR image</small>
+</div>
+
 <button type="submit" class="btn btn-primary">Update</button>
 </form>
 </div></div></div></div>

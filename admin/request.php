@@ -71,12 +71,12 @@ $i = 1;
         <td align="center" style="padding:5px;">
             <?php
             $note = $fetch['verify_note'] ?? '';
-            if($fetch['status'] == 'C') {
-                echo '<span style="color:#fff;background:#009900;padding:2px 8px;border-radius:5px;">✅ Blockchain Verified</span>';
-            } elseif(!empty($note)) {
-                echo '<span style="color:#fff;background:#cc6600;padding:2px 8px;border-radius:5px;" title="'.htmlspecialchars($note).'">⚠ '.$note.'</span>';
+            if($fetch['status'] == 'C' && strpos($note,'Auto Verified') !== false) {
+                echo '<span style="color:#fff;background:#009900;padding:2px 8px;border-radius:5px;">✅ ' . htmlspecialchars($note) . '</span>';
+            } elseif($fetch['status'] == 'C') {
+                echo '<span style="color:#fff;background:#009900;padding:2px 8px;border-radius:5px;">✅ Admin Approved</span>';
             } else {
-                echo '<span style="color:#fff;background:#999;padding:2px 8px;border-radius:5px;">Pending Review</span>';
+                echo '<span style="color:#fff;background:#cc6600;padding:2px 8px;border-radius:5px;">⏳ ' . htmlspecialchars($note) . '</span>';
             }
             ?>
         </td>

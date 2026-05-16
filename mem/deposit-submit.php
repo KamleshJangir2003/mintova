@@ -8,6 +8,7 @@ if($_SERVER['REQUEST_METHOD'] !== 'POST') redirect('deposit');
 $userid     = mysqli_real_escape_string($conn, trim($_POST['userid']));
 $amount     = floatval($_POST['amount']);
 $tranid     = mysqli_real_escape_string($conn, trim($_POST['tranid']));
+$network    = in_array($_POST['network'] ?? '', ['trc20','bep20']) ? $_POST['network'] : 'trc20';
 $date       = date('Y-m-d');
 $screenshot = '';
 
@@ -31,63 +32,136 @@ $chk->execute();
 $chk->store_result();
 if($chk->num_rows > 0) redirect('deposit?dup=1');
 
-// Get admin wallet address
-$qr_res = $conn->query("SELECT wallet_address FROM imaksoft_settings_qr LIMIT 1");
-$qr     = $qr_res ? $qr_res->fetch_assoc() : null;
-$admin_wallet = $qr['wallet_address'] ?? '';
+// Get admin wallet addresses
+$qr_res = $conn->query("SELECT * FROM imaksoft_settings_qr LIMIT 1");
+$qr           = $qr_res ? $qr_res->fetch_assoc() : null;
+$trc20_wallet = $qr['wallet_address'] ?? '';
+$bep20_wallet = $qr['bep20_wallet_address'] ?? '';
+
+$verified    = false;
+$verify_note = 'Pending Admin Approval (' . strtoupper($network) . ')';
 
 // -------------------------------------------------------
-// TRON BLOCKCHAIN VERIFY via TronScan API
+// TRC20 - TronScan API
 // -------------------------------------------------------
-$verified = false;
-$verify_note = 'Pending manual review';
-
-if(!empty($tranid) && !empty($admin_wallet)) {
-    $api_url = "https://apilist.tronscanapi.com/api/transaction-info?hash=" . urlencode($tranid);
-
+if($network === 'trc20' && !empty($tranid) && !empty($trc20_wallet)) {
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $api_url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 15);
-    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => "https://apilist.tronscanapi.com/api/transaction-info?hash=" . urlencode($tranid),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_USERAGENT      => 'Mozilla/5.0',
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
     $response = curl_exec($ch);
     curl_close($ch);
 
     if($response) {
         $data = json_decode($response, true);
 
-        // TronScan returns contractData for TRC20 transfers
-        if(
-            isset($data['contractData']) &&
-            isset($data['contractType']) &&
-            $data['contractType'] == 31  // TRC20 Transfer
-        ) {
-            $to_address   = $data['contractData']['to_address']   ?? '';
-            $token_symbol = $data['tokenInfo']['tokenAbbr']        ?? '';
-            $raw_amount   = floatval($data['contractData']['amount'] ?? 0);
-            $decimals     = intval($data['tokenInfo']['tokenDecimal'] ?? 6);
-            $tx_amount    = $raw_amount / pow(10, $decimals);
-            $confirmed    = $data['confirmed'] ?? false;
+        // Correct fields from actual TronScan API response
+        $transfer     = $data['trc20TransferInfo'][0] ?? null;
+        $contractType = $data['contractType'] ?? 0;
+        $confirmed    = $data['confirmed'] ?? false;
+        $contractRet  = $data['contractRet'] ?? '';
 
-            // Check: correct wallet, USDT, correct amount, confirmed
+        if($transfer && $contractType == 31 && $contractRet === 'SUCCESS') {
+            $to_address   = $transfer['to_address'] ?? '';
+            $token_symbol = $transfer['symbol']     ?? '';
+            $raw_amount   = floatval($transfer['amount_str'] ?? 0);
+            $decimals     = intval($transfer['decimals']     ?? 6);
+            $tx_amount    = $raw_amount / pow(10, $decimals);
+
             if(
-                strtolower($to_address)   == strtolower($admin_wallet) &&
+                strtolower($to_address)   == strtolower($trc20_wallet) &&
                 strtoupper($token_symbol) == 'USDT' &&
                 $confirmed == true &&
-                abs($tx_amount - $amount) < 0.01  // allow 0.01 tolerance
+                abs($tx_amount - $amount) < 0.01
             ) {
                 $verified    = true;
-                $verify_note = 'Blockchain Verified';
+                $verify_note = 'Auto Verified - TRC20';
             } else {
-                $verify_note = 'Verification Failed: amount/address/token mismatch';
+                $verify_note = 'TRC20 Mismatch - Pending Admin Approval';
             }
         } else {
-            $verify_note = 'Not a valid TRC20 USDT transaction';
+            $verify_note = 'Invalid TRC20 TX - Pending Admin Approval';
         }
-    } else {
-        $verify_note = 'API unreachable - pending manual review';
     }
+    // if curl fails, $verify_note stays as 'Pending Admin Approval'
+}
+
+// -------------------------------------------------------
+// BEP20 - BSCScan API
+// -------------------------------------------------------
+elseif($network === 'bep20' && !empty($tranid) && !empty($bep20_wallet)) {
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL            => "https://api.bscscan.com/api?module=proxy&action=eth_getTransactionByHash&txhash=" . urlencode($tranid),
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT        => 15,
+        CURLOPT_USERAGENT      => 'Mozilla/5.0',
+        CURLOPT_SSL_VERIFYPEER => false,
+    ]);
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    if($response) {
+        $data = json_decode($response, true);
+        $tx   = $data['result'] ?? null;
+
+        if($tx && strtolower($tx['hash']) === strtolower($tranid)) {
+            // Get receipt for confirmation status
+            $ch2 = curl_init();
+            curl_setopt_array($ch2, [
+                CURLOPT_URL            => "https://api.bscscan.com/api?module=proxy&action=eth_getTransactionReceipt&txhash=" . urlencode($tranid),
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 15,
+                CURLOPT_USERAGENT      => 'Mozilla/5.0',
+                CURLOPT_SSL_VERIFYPEER => false,
+            ]);
+            $receipt_resp = curl_exec($ch2);
+            curl_close($ch2);
+
+            $receipt   = json_decode($receipt_resp, true);
+            $confirmed = (($receipt['result']['status'] ?? '0x0') === '0x1');
+
+            // USDT BEP20 contract address on BSC
+            $usdt_contract = '0x55d398326f99059ff775485246999027b3197955';
+            $to_contract   = strtolower($tx['to'] ?? '');
+
+            if($confirmed && $to_contract === $usdt_contract) {
+                $input = $tx['input'] ?? '';
+                if(strlen($input) >= 138 && substr($input, 0, 10) === '0xa9059cbb') {
+                    $to_hex    = '0x' . substr($input, 34, 40);
+                    $amt_hex   = ltrim(substr($input, 74, 64), '0') ?: '0';
+                    // Convert large hex to decimal safely using bcmath
+                    $amt_dec   = '0';
+                    $hex_chars = str_split($amt_hex);
+                    foreach($hex_chars as $c) {
+                        $amt_dec = bcadd(bcmul($amt_dec, '16'), (string)hexdec($c));
+                    }
+                    $tx_amount = bcdiv($amt_dec, bcpow('10', '18'), 8);
+
+                    if(
+                        strtolower($to_hex) == strtolower($bep20_wallet) &&
+                        abs((float)$tx_amount - $amount) < 0.01
+                    ) {
+                        $verified    = true;
+                        $verify_note = 'Auto Verified - BEP20';
+                    } else {
+                        $verify_note = 'BEP20 Mismatch - Pending Admin Approval';
+                    }
+                } else {
+                    $verify_note = 'Invalid BEP20 TX - Pending Admin Approval';
+                }
+            } else {
+                $verify_note = 'BEP20 Not Confirmed - Pending Admin Approval';
+            }
+        } else {
+            $verify_note = 'BEP20 TX Not Found - Pending Admin Approval';
+        }
+    }
+    // if curl fails, $verify_note stays as 'Pending Admin Approval'
 }
 
 // -------------------------------------------------------
@@ -99,10 +173,10 @@ $stmt = $conn->prepare("INSERT INTO mi_member_payment (userid, tranid, slip, amo
 $stmt->bind_param("sssdsss", $userid, $tranid, $screenshot, $amount, $status, $verify_note, $date);
 if(!$stmt->execute()) redirect('deposit?e=1');
 
-// If verified, credit wallet immediately
+// Auto verified - credit wallet immediately
 if($verified) {
-    $conn->query("INSERT INTO imaksoft_deposit (userid, amount, remarks, date) 
-                  VALUES ('$userid', '$amount', 'USDT Deposit - $verify_note', '$date')");
+    $remarks = 'USDT Deposit - ' . $verify_note;
+    $conn->query("INSERT INTO imaksoft_deposit (userid, amount, remarks, date) VALUES ('$userid', '$amount', '$remarks', '$date')");
     redirect('deposit?s=1&auto=1');
 } else {
     redirect('deposit?s=1&pending=1');
