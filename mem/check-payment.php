@@ -21,6 +21,33 @@ if(empty($trc20_wallet)) {
     exit;
 }
 
+// Convert base58 wallet to hex for comparison
+function tron_base58_to_hex($address) {
+    $alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    $base = strlen($alphabet);
+    $bytes = [0];
+    for($i = 0; $i < strlen($address); $i++) {
+        $char = strpos($alphabet, $address[$i]);
+        $carry = $char;
+        for($j = count($bytes)-1; $j >= 0; $j--) {
+            $carry += $base * $bytes[$j];
+            $bytes[$j] = $carry % 256;
+            $carry = intdiv($carry, 256);
+        }
+        while($carry > 0) {
+            array_unshift($bytes, $carry % 256);
+            $carry = intdiv($carry, 256);
+        }
+    }
+    // Remove checksum (last 4 bytes)
+    $bytes = array_slice($bytes, 0, count($bytes) - 4);
+    $hex = '';
+    foreach($bytes as $b) $hex .= str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
+    return $hex;
+}
+
+$wallet_hex = tron_base58_to_hex($trc20_wallet);
+
 // ── TRX Native Transfer Detection via TronGrid ─────────────────────────────
 $ch = curl_init();
 curl_setopt_array($ch, [
@@ -50,14 +77,14 @@ foreach($txs as $tx) {
     if(!$contract) continue;
     if(($contract['type'] ?? '') !== 'TransferContract') continue;
 
-    $to_address = $contract['parameter']['value']['to_address'] ?? '';
-    $trx_amount = floatval($contract['parameter']['value']['amount'] ?? 0) / 1000000; // sun to TRX
+    $to_hex     = $contract['parameter']['value']['to_address'] ?? '';
+    $trx_amount = floatval($contract['parameter']['value']['amount'] ?? 0) / 1000000;
     $tranid     = $tx['txID'] ?? '';
     $tx_time    = intval(($tx['raw_data']['timestamp'] ?? 0) / 1000);
     $ret_code   = $tx['ret'][0]['contractRet'] ?? '';
 
-    // Only successful confirmed TRX to our wallet in last 24 hours
-    if(strtolower($to_address) !== strtolower($trc20_wallet)) continue;
+    // Compare hex addresses
+    if(strtolower($to_hex) !== strtolower($wallet_hex)) continue;
     if($ret_code !== 'SUCCESS') continue;
     if((time() - $tx_time) > 86400) continue;
     if(abs($trx_amount - $amount) >= 0.5) continue; // 0.5 TRX tolerance
