@@ -239,12 +239,15 @@ var maxPolls    = 60; // 10 min max (60 x 10s)
 var currentAmt  = 0;
 var currentNet  = '';
 
+var startTime = 0;
+
 function showQR() {
     let amt = parseFloat(document.getElementById('enterAmount').value);
     if (isNaN(amt) || amt <= 0) { alert('Enter valid amount'); return; }
     if(!trc20Wallet) { alert('Wallet not configured. Please contact admin.'); return; }
     currentAmt = amt;
     currentNet = 'trc20';
+    startTime  = Math.floor(Date.now() / 1000); // Unix timestamp when user clicked
     document.getElementById('showAmt').innerText = amt.toFixed(2);
     document.getElementById('walletAddr').value = trc20Wallet;
     let qrEl = document.getElementById('qrImg');
@@ -271,7 +274,7 @@ function checkPayment() {
     fetch('check-payment', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'amount=' + currentAmt + '&network=' + currentNet
+        body: 'amount=' + currentAmt + '&network=' + currentNet + '&start_time=' + startTime
     })
     .then(r => r.json())
     .then(data => {
