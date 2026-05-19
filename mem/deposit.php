@@ -375,9 +375,10 @@ $result = $stmt->get_result();
                     $i = $offset + 1;
                     if ($result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
+                            $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg>';
                             echo "<tr>
                                     <td>{$i}</td>
-                                    <td>$ {$row['amount']}</td>
+                                    <td>{$svg} {$row['amount']}</td>
                                     <td>{$row['status']}</td>
                                     <td>{$row['date']}</td>
                                   </tr>";

@@ -173,7 +173,7 @@ $left=2;
 <?php }?>
 <?php if(($_REQUEST['e'] ?? null)==1){?><p align="center" style="color:#FF0000; padding-bottom:8px;font-size:16px;">Minimum withdrawal amount is <?=getSettingsWithdrawal($conn,'minimum')?></p><?php }?>
 
-<h4 class="form-section text-center">Wallet Balance: <?=getAvailableFundWallet($conn,getMember($conn,$_SESSION['mid'],'userid'))?> USD</h4>
+<h4 class="form-section text-center">Wallet Balance: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getAvailableFundWallet($conn,getMember($conn,$_SESSION['mid'],'userid'))?> USDT</h4>
 <p>&nbsp;</p>
 
 <?php 
@@ -351,11 +351,12 @@ if ($result->num_rows > 0) {
                 break;
         }
 
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg>';
         echo "<tr>
                 <td>{$i}</td>
-                <td>$ {$row['request']}</td>
-                <td>$ {$row['charge']}</td>
-                <td>$ {$row['payout']}</td>
+                <td>{$svg} {$row['request']}</td>
+                <td>{$svg} {$row['charge']}</td>
+                <td>{$svg} {$row['payout']}</td>
                 <td>{$row['type']}</td>
                 <td>{$status}</td>
                 <td>{$row['date']}</td>

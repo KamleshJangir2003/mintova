@@ -331,7 +331,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=getDirectBonusMember($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getDirectBonusMember($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
@@ -379,7 +379,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=getROIBonus($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getROIBonus($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
@@ -425,7 +425,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=getLevelROIBonus($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getLevelROIBonus($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
@@ -473,7 +473,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=getRewardddBonus($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getRewardddBonus($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
@@ -521,7 +521,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=geTotalCommission($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=geTotalCommission($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
@@ -571,7 +571,7 @@ $latestPackage = $row['package'] ?? "No Investment";
                           
                         <div class="pt-3">
                           <h4 class="counter" style="visibility: visible">
-                            $ <?=getAvailableFundWallet($conn,$userid)?>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;margin-right:2px;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg> <?=getAvailableFundWallet($conn,$userid)?>
                           </h4>
                           <div class="pt-3">
                             <small class="text-success">+ 0.8%</small>
