@@ -242,10 +242,7 @@ var currentNet  = '';
 function showQR() {
     let amt = parseFloat(document.getElementById('enterAmount').value);
     if (isNaN(amt) || amt <= 0) { alert('Enter valid amount'); return; }
-    let net = document.querySelector('input[name="networkSelect"]:checked').value;
-    let wallet = net === 'bep20' ? bep20Wallet : trc20Wallet;
-    let qrSrc  = net === 'bep20' ? bep20QR     : trc20QR;
-    if(!wallet) { alert('This network is not configured yet. Please contact admin.'); return; }
+    if(!trc20Wallet) { alert('Wallet not configured. Please contact admin.'); return; }
     currentAmt = amt;
     currentNet = 'trc20';
     document.getElementById('showAmt').innerText = amt.toFixed(2);
