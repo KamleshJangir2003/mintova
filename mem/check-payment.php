@@ -100,7 +100,7 @@ foreach($txs as $tx) {
     }
 
     // Save + credit
-    $verify_note = 'Auto Verified - TRX';
+    $verify_note = 'Auto Verified - TRON';
     $status      = 'C';
     $screenshot  = '';
     $stmt = $conn->prepare("INSERT INTO mi_member_payment (userid, tranid, slip, network, amount, status, verify_note, date) VALUES (?,?,?,?,?,?,?,?)");

@@ -336,18 +336,19 @@ $offset = ($page - 1) * $limit;
 // Get current user's ID
 $userid = getMember($conn, $_SESSION['mid'], 'userid');
 
-$query = "SELECT amount, remarks AS status, date FROM imaksoft_deposit WHERE userid = ? ORDER BY id DESC LIMIT ?, ?";
+$query = "SELECT d.amount, d.remarks, d.date, COALESCE(p.status,'C') AS pay_status FROM imaksoft_deposit d LEFT JOIN mi_member_payment p ON p.userid=d.userid AND p.date=d.date AND p.amount=d.amount ORDER BY d.id DESC LIMIT ?, ?";
 $stmt = $conn->prepare($query);
-$stmt->bind_param("sii", $userid, $offset, $limit);
+$stmt->bind_param("ii", $offset, $limit);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
 <table class="table table-bordered table-striped">
 <thead>
-<tr >
+<tr>
 <th align="center">Sl_No</th>
 <th align="center">Amount</th>
 <th align="center">Remarks</th>
+<th align="center">Status</th>
 <th align="center">Date</th>
 </tr>
 </thead>
@@ -357,16 +358,21 @@ $result = $stmt->get_result();
                     if ($result->num_rows > 0) {
                         while ($row = $result->fetch_assoc()) {
                             $svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;"><polygon points="12 2 2 19 22 19"/><line x1="12" y1="2" x2="12" y2="19"/><line x1="2" y1="19" x2="12" y2="10"/><line x1="22" y1="19" x2="12" y2="10"/></svg>';
+                            $ps = $row['pay_status'];
+                            if($ps === 'C') $badge = '<span class="badge bg-success">✅ Confirmed</span>';
+                            elseif($ps === 'P') $badge = '<span class="badge bg-warning text-dark">⏳ Pending</span>';
+                            else $badge = '<span class="badge bg-success">✅ Confirmed</span>';
                             echo "<tr>
                                     <td>{$i}</td>
                                     <td>{$svg} {$row['amount']}</td>
-                                    <td>{$row['status']}</td>
+                                    <td>{$row['remarks']}</td>
+                                    <td>{$badge}</td>
                                     <td>{$row['date']}</td>
                                   </tr>";
                             $i++;
                         }
                     } else {
-                        echo '<tr><td colspan="4" class="text-danger">No Record Found!</td></tr>';
+                        echo '<tr><td colspan="5" class="text-danger">No Record Found!</td></tr>';
                     }
                     ?>
 </tbody>

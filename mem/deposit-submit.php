@@ -82,7 +82,7 @@ if($network === 'trc20' && !empty($tranid) && !empty($trc20_wallet)) {
                 abs($tx_amount - $amount) < 0.01
             ) {
                 $verified    = true;
-                $verify_note = 'Auto Verified - TRC20';
+            $verify_note = 'Auto Verified - TRON';
             } else {
                 $verify_note = 'TRC20 Mismatch - Pending Admin Approval';
             }
@@ -180,7 +180,7 @@ if(!$stmt->execute()) redirect('deposit?e=1');
 
 // Auto verified - credit wallet immediately
 if($verified) {
-    $remarks = 'USDT Deposit - ' . $verify_note;
+    $remarks = 'TRX Deposit - ' . $verify_note;
     $conn->query("INSERT INTO imaksoft_deposit (userid, amount, remarks, date) VALUES ('$userid', '$amount', '$remarks', '$date')");
     $conn->query("UPDATE imaksoft_member SET paystatus='A', status='A' WHERE userid='$userid' AND paystatus='I'");
     redirect('deposit?s=1&auto=1');
