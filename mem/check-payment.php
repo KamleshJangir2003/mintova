@@ -86,29 +86,33 @@ foreach($txs as $tx) {
     // Compare hex addresses
     if(strtolower($to_hex) !== strtolower($wallet_hex)) continue;
     if($ret_code !== 'SUCCESS') continue;
-    if((time() - $tx_time) > 86400) continue;
+    if((time() - $tx_time) > 900) continue; // only last 15 minutes
     if(abs($trx_amount - $amount) >= 0.5) continue; // 0.5 TRX tolerance
 
-    // Check duplicate
-    $chk = $conn->prepare("SELECT id FROM mi_member_payment WHERE tranid=?");
+    // Check duplicate by tranid
+    $chk = $conn->prepare("SELECT id FROM mi_member_payment WHERE tranid=? LIMIT 1");
     $chk->bind_param("s", $tranid);
     $chk->execute();
     $chk->store_result();
     if($chk->num_rows > 0) {
-        echo json_encode(['status'=>'already','msg'=>'Already processed']);
+        echo json_encode(['status'=>'success','msg'=>'Already processed']);
         exit;
     }
+    $chk->close();
 
-    // Save + credit
+    // Save + credit using INSERT IGNORE to prevent race condition
     $verify_note = 'Auto Verified - TRON';
     $status      = 'C';
     $screenshot  = '';
-    $stmt = $conn->prepare("INSERT INTO mi_member_payment (userid, tranid, slip, network, amount, status, verify_note, date) VALUES (?,?,?,?,?,?,?,?)");
+    $stmt = $conn->prepare("INSERT IGNORE INTO mi_member_payment (userid, tranid, slip, network, amount, status, verify_note, date) VALUES (?,?,?,?,?,?,?,?)");
     $stmt->bind_param("ssssdsss", $userid, $tranid, $screenshot, $network, $amount, $status, $verify_note, $date);
     $stmt->execute();
 
-    $conn->query("INSERT INTO imaksoft_deposit (userid, amount, remarks, date) VALUES ('$userid', '$amount', 'TRX Deposit - Auto Verified', '$date')");
-    $conn->query("UPDATE imaksoft_member SET paystatus='A', status='A' WHERE userid='$userid' AND paystatus='I'");
+    // Only credit if row was actually inserted (affected_rows = 1)
+    if($stmt->affected_rows === 1) {
+        $conn->query("INSERT INTO imaksoft_deposit (userid, amount, remarks, date) VALUES ('$userid', '$amount', 'TRX Deposit - Auto Verified - TRON', '$date')");
+        $conn->query("UPDATE imaksoft_member SET paystatus='A', status='A' WHERE userid='$userid' AND paystatus='I'");
+    }
 
     echo json_encode(['status'=>'success','msg'=>'TRX Payment verified!','amount'=>$trx_amount,'hash'=>$tranid]);
     exit;
